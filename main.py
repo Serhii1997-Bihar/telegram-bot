@@ -105,7 +105,8 @@ def users(message):
     if is_admin(message.from_user.id):
         all_users = get_users()
         for user in all_users:
-            bot.send_message(message.chat.id, user)
+            data_user = f"{user[0]} | {user[1]} | {user[2]} "
+            bot.send_message(message.chat.id, data_user)
     else:
         bot.send_message(message.chat.id, "Please, enter button 'Sign Up'", reply_markup=signup_keyboard())
 
