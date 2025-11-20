@@ -3,3 +3,5 @@ files
 telebot_venv
 chaude_neige
 .env
+.idea
+__pycache__
