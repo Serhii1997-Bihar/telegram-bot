@@ -1,8 +1,8 @@
 import telebot, schedule, time, threading
 from features.voc.vocabulary import get_dictionary
 from features.english import english_reminder
-from features.reminders.weather_feature import get_weather
-from features.reminders.tasks import task_reminder
+from features.reminders.weather import get_weather
+from features.reminders.task_reminder import task_reminder
 from features.sport import get_matches
 from utils.authenticate import is_registered, is_admin
 from database.init_sqlite import init_db
@@ -28,7 +28,7 @@ def english_planner():
 
     while True:
         schedule.run_pending()
-        time.sleep(55)
+        time.sleep(60)
 
 def weather_planner():
     schedule.every().day.at("07:00").do(lambda: get_weather(bot))
@@ -114,14 +114,14 @@ def buttons_task(call):
 
     user_name = call.from_user.username
     actions = {
-        'create_task': lambda: create_task(bot, call, user_name),
-        'show_tasks': lambda: show_tasks(bot, call, user_name),
+        'create_task': lambda: create_task(bot, call, call.from_user.id),
+        'show_tasks': lambda: show_tasks(bot, call, call.from_user.id),
         'choose_task': lambda: choose_task(bot, call, user_name),
         'operational': lambda: get_operational(call, bot),
         'documents': lambda: get_documents(call, bot),
         'operator': lambda: get_operator(call, bot),
-        'new_books': lambda: new_books(bot, call, user_name),
-        'read_books': lambda: read_books(bot, call, user_name),
+        'new_books': lambda: new_books(bot, call, call.from_user.id),
+        'read_books': lambda: read_books(bot, call, call.from_user.id),
         'server': lambda: server(bot, call),
         'docker': lambda: docker(bot, call),
         'mongo': lambda: mongodb(bot, call),

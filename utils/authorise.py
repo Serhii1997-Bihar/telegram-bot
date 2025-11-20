@@ -22,7 +22,7 @@ def get_number(bot, message):
 def get_age(bot, message, user_city):
     if message.content_type == 'contact':
         user_number = message.contact.phone_number
-        bot_message = bot.send_message(message.chat.id, 'How old are you?')
+        bot_message = bot.send_message(message.chat.id, 'What is your year birth?')
         bot.register_next_step_handler(bot_message, lambda msg: create_user(bot, msg, user_city, user_number))
     else:
         bot.send_message(message.chat.id, 'Enter your phone number by clicking the button.')
@@ -30,13 +30,13 @@ def get_age(bot, message, user_city):
 
 def create_user(bot, message, user_city, user_number):
     user_age = message.text
-    user_name = message.from_user.username or f"user_N{random.randint(1,9999)}"
+    user_name = message.from_user.username or f"person_{random.randint(1,99)}"
     user_id = message.from_user.id
 
     with get_db_connection() as conn:
         cur = conn.cursor()
         cur.execute(
-            'INSERT INTO employers (user_id, username, city, age, phone) VALUES (?, ?, ?, ?, ?)',
+            'INSERT INTO employers (user_id, username, city, year, phone) VALUES (?, ?, ?, ?, ?)',
             (user_id, user_name, user_city, user_age, user_number))
         conn.commit()
 
