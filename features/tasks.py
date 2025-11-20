@@ -69,4 +69,4 @@ def remove_task(bot, message, user_name):
         cur.execute(f"DELETE FROM {table_name} WHERE number = ?", (number,))
         conn.commit()
 
-    bot.send_message(message.chat.id, 'Task removed!')
+    bot.send_message(message.chat.id, 'Task has been removed!')

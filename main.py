@@ -7,7 +7,7 @@ from features.sport import get_matches
 from utils.authenticate import is_registered, is_admin
 from database.init_sqlite import init_db
 from utils.authorise import get_city
-from features.admin import get_users
+from features.admin import get_users, choose_user
 from utils.buttons import *
 from features.tasks import *
 from features.zina import *
@@ -103,12 +103,9 @@ def books(message):
 @bot.message_handler(func= lambda message: message.text == 'Users')
 def users(message):
     if is_admin(message.from_user.id):
-        all_users = get_users()
-        for user in all_users:
-            data_user = f"{user[0]} | {user[1]} | {user[2]} "
-            bot.send_message(message.chat.id, data_user)
+        bot.send_message(message.chat.id, f"Choose a button ☑️", reply_markup=users_keyboard())
     else:
-        bot.send_message(message.chat.id, "Please, enter button 'Sign Up'", reply_markup=signup_keyboard())
+        bot.send_message(message.chat.id, "You don't have admin access!")
 
 @bot.callback_query_handler(func=lambda call: True)
 def buttons_task(call):
@@ -131,6 +128,8 @@ def buttons_task(call):
         'git': lambda: git(bot, call),
         'firewall': lambda: firewall(bot, call),
         'nginx': lambda: nginx(bot, call),
+        'show_users': lambda: get_users(bot, call),
+        'remove_user': lambda: choose_user(bot, call) 
     }
 
     action = actions.get(call.data)

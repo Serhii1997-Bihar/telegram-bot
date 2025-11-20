@@ -52,3 +52,10 @@ def books_keyboard():
     button11 = types.InlineKeyboardButton("New books", callback_data='new_books')
     keyboard.add(button10, button11)
     return keyboard
+
+def users_keyboard():
+    keyboard = types.InlineKeyboardMarkup(row_width=4)
+    button1 = types.InlineKeyboardButton("Show", callback_data='show_users')
+    button2 = types.InlineKeyboardButton("Remove", callback_data='remove_user')
+    keyboard.add(button1, button2)
+    return keyboard
