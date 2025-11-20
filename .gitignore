@@ -1,7 +1,6 @@
 db_bot.db
 files
-telebot_venv
-chaude_neige
+.telebot_env
 .env
 .idea
 __pycache__
