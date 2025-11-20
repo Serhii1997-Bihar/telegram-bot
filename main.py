@@ -137,8 +137,6 @@ def buttons_task(call):
         action()
 
 
-
-
 if __name__ == "__main__":
     threading.Thread(target=task_planner, daemon=True).start()
     threading.Thread(target=weather_planner, daemon=True).start()

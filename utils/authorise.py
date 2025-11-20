@@ -30,7 +30,7 @@ def get_age(bot, message, user_city):
 
 def create_user(bot, message, user_city, user_number):
     user_age = message.text
-    user_name = message.from_user.username or f"person_{random.randint(1,99)}"
+    user_name = message.from_user.username or f"user_{random.randint(1,99)}"
     user_id = message.from_user.id
 
     with get_db_connection() as conn:
