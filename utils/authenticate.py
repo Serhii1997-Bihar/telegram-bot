@@ -12,10 +12,12 @@ def is_registered(user_id):
 
 
 def is_admin(user_id):
-    if user_id == os.getenv('MY_ID'):
+    my_id = os.getenv("MY_ID")
+    if my_id and user_id == int(my_id):
         return True
 
     with get_db_connection() as conn:
         cur = conn.cursor()
         cur.execute("SELECT * FROM employers WHERE user_id = ?", (user_id,))
         return cur.fetchone() is not None
+
