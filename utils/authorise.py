@@ -1,7 +1,7 @@
 from database.init_sqlite import get_db_connection
-from utils.bot_elements import main_keyboard
-import random
+from utils.buttons import main_keyboard
 from telebot import types
+import random
 
 def get_city(bot, message):
     if message.text == "Sign Up":
@@ -33,9 +33,12 @@ def create_user(bot, message, user_city, user_number):
     user_name = message.from_user.username or f"user_N{random.randint(1,9999)}"
     user_id = message.from_user.id
 
-    conn = get_db_connection()
-    cur = conn.cursor()
-    cur.execute('INSERT INTO employers (user_id, username, city, age, phone) VALUES (?, ?, ?, ?, ?)',
-                (user_id, user_name, user_city, user_age, user_number))
-    conn.commit()
+    with get_db_connection() as conn:
+        cur = conn.cursor()
+        cur.execute(
+            'INSERT INTO employers (user_id, username, city, age, phone) VALUES (?, ?, ?, ?, ?)',
+            (user_id, user_name, user_city, user_age, user_number))
+        conn.commit()
+
     bot.send_message(message.chat.id, f"{user_name}, You are registered.", reply_markup=main_keyboard())
+

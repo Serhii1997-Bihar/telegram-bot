@@ -1,19 +1,19 @@
-import telebot, schedule, time, threading, os
+import telebot, schedule, time, threading
 from features.voc.vocabulary import get_dictionary
-from features.english_feature import english_reminder
+from features.english import english_reminder
 from features.reminders.weather_feature import get_weather
 from features.reminders.tasks import task_reminder
-from features.sport_feature import get_matches
-from utils.authenticate import is_registered
-from utils.bot_elements import main_keyboard, scripts_keyboard, signup_keyboard
+from features.sport import get_matches
+from utils.authenticate import is_registered, is_admin
 from database.init_sqlite import init_db
 from utils.authorise import get_city
-from features.tasks_feature import *
-from features.zina_feature import *
-from features.books_feature import *
-from features.scripts_feature import *
+from features.admin import get_users
+from utils.buttons import *
+from features.tasks import *
+from features.zina import *
+from features.books import *
+from features.scripts import *
 from dotenv import load_dotenv
-from telebot import types
 
 load_dotenv()
 bot = telebot.TeleBot(os.getenv('BOT_TOKEN'))
@@ -50,23 +50,24 @@ def registration(message):
         bot.send_message(message.chat.id,"Hello, I'm Joopee Kipers. I can help you, but you need to sign up first.", reply_markup=signup_keyboard())
         bot.register_next_step_handler_by_chat_id(message.chat.id, lambda msg: get_city(bot, msg))
 
+@bot.message_handler(commands=["admin"])
+def admin(message):
+    if is_admin(message.from_user.id):
+        bot.send_message(message.chat.id,f"Hello admin!", reply_markup=admin_keyboard())
+    else:
+        bot.send_message(message.chat.id,"You don't have admin access!")
+        
 @bot.message_handler(func= lambda message: message.text == 'Tasks')
 def tasks(message):
     if is_registered(message.from_user.id):
-        keyboard = types.InlineKeyboardMarkup()
-        button1 = types.InlineKeyboardButton("Create", callback_data='create_task')
-        button2 = types.InlineKeyboardButton("Show", callback_data='show_tasks')
-        button3 = types.InlineKeyboardButton("Remove", callback_data='choose_task')
-        keyboard.add(button1, button2, button3)
-        bot.send_message(message.chat.id, f"Choose a button ☑️", reply_markup=keyboard)
+        bot.send_message(message.chat.id, f"Choose a button ☑️", reply_markup=tasks_keyboard())
     else:
         bot.send_message(message.chat.id, "Please, enter button 'Sign Up'", reply_markup=signup_keyboard())
 
 @bot.message_handler(func=lambda message: message.text == 'Football')
 def football(message):
     if is_registered(message.from_user.id):
-        matches = get_matches()
-        bot.send_message(message.chat.id, matches)
+        bot.send_message(message.chat.id, get_matches())
     else:
         bot.send_message(message.chat.id, "Please, enter button 'Sign Up'", reply_markup=signup_keyboard())
 
@@ -80,12 +81,7 @@ def scripts(message):
 @bot.message_handler(func=lambda message: message.text == 'Zina')
 def work(message):
     if is_registered(message.from_user.id):
-        keyboard = types.InlineKeyboardMarkup()
-        button4 = types.InlineKeyboardButton("Operational", callback_data='operational')
-        button5 = types.InlineKeyboardButton("Documents", callback_data='documents')
-        button6 = types.InlineKeyboardButton("Operator", callback_data='operator')
-        keyboard.add(button4, button5, button6)
-        bot.send_message(message.chat.id, f'{message.from_user.first_name}, can I help you?', reply_markup=keyboard)
+        bot.send_message(message.chat.id, f'{message.from_user.first_name}, can I help you?', reply_markup=documents_keyboard())
     else:
         bot.send_message(message.chat.id, "Please, enter button 'Sign Up'", reply_markup=signup_keyboard())
 
@@ -100,63 +96,47 @@ def education(message):
 @bot.message_handler(func= lambda message: message.text == 'Books')
 def books(message):
     if is_registered(message.from_user.id):
-        keyboard = types.InlineKeyboardMarkup()
-        button10 = types.InlineKeyboardButton("Finished books", callback_data='read_books')
-        button11 = types.InlineKeyboardButton("New books", callback_data='new_books')
-        keyboard.add(button10, button11)
-        bot.send_message(message.chat.id, f"Choose a button ☑️", reply_markup=keyboard)
+        bot.send_message(message.chat.id, f"Choose a button ☑️", reply_markup=books_keyboard())
+    else:
+        bot.send_message(message.chat.id, "Please, enter button 'Sign Up'", reply_markup=signup_keyboard())
+
+@bot.message_handler(func= lambda message: message.text == 'Users')
+def users(message):
+    if is_admin(message.from_user.id):
+        all_users = get_users()
+        for user in all_users:
+            bot.send_message(message.chat.id, user)
     else:
         bot.send_message(message.chat.id, "Please, enter button 'Sign Up'", reply_markup=signup_keyboard())
 
 @bot.callback_query_handler(func=lambda call: True)
 def buttons_task(call):
-    if call.message:
-        user_name = call.from_user.username
+    if not call.message:
+        return
 
-        if call.data == "create_task":
-            create_task(bot, call, user_name)
+    user_name = call.from_user.username
+    actions = {
+        'create_task': lambda: create_task(bot, call, user_name),
+        'show_tasks': lambda: show_tasks(bot, call, user_name),
+        'choose_task': lambda: choose_task(bot, call, user_name),
+        'operational': lambda: get_operational(call, bot),
+        'documents': lambda: get_documents(call, bot),
+        'operator': lambda: get_operator(call, bot),
+        'new_books': lambda: new_books(bot, call, user_name),
+        'read_books': lambda: read_books(bot, call, user_name),
+        'server': lambda: server(bot, call),
+        'docker': lambda: docker(bot, call),
+        'mongo': lambda: mongodb(bot, call),
+        'git': lambda: git(bot, call),
+        'firewall': lambda: firewall(bot, call),
+        'nginx': lambda: nginx(bot, call),
+    }
 
-        elif call.data == 'show_tasks':
-            show_tasks(bot, call, user_name)
+    action = actions.get(call.data)
+    if action:
+        action()
 
-        elif call.data == 'choose_task':
-            choose_task(bot, call, user_name)
 
-        elif call.data == 'operational':
-            get_operational(call, bot)
-
-        elif call.data == 'documents':
-            get_documents(call, bot)
-
-        elif call.data == 'operator':
-            get_operator(call, bot)
-
-        elif call.data == 'new_books':
-            new_books(bot, call, user_name)
-
-        elif call.data == 'read_books':
-            read_books(bot, call, user_name)
-
-        elif call.data == 'server':
-            server(bot, call)
-
-        elif call.data == 'docker':
-            docker(bot, call)
-
-        elif call.data == 'mongo':
-            mongodb(bot, call)
-
-        elif call.data == 'git':
-            git(bot, call)
-
-        elif call.data == 'firewall':
-            firewall(bot, call)
-
-        elif call.data == 'nginx':
-            nginx(bot, call)
-            
-        elif call.data == 'button_8':
-            get_weather(bot)
 
 
 if __name__ == "__main__":
